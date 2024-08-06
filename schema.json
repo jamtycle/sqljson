@@ -1,0 +1,34 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://example.com/product.schema.json",
+    "title": "Product",
+    "description": "A product from Acme's catalog",
+    "type": "object",
+    "properties": {
+        "flavor": {
+            "description": "The language flavor of the json query",
+            "type": "enum",
+            "enum": ["postgresql", "mysql", "mssql", "sqlite"]
+        },
+        "select": {
+            "description": "The columns to select",
+            "type": "object",
+            "properties": {
+                "distinct": {
+                    "description": "Whether to select distinct rows",
+                    "type": "boolean"
+                },
+                "columns": {
+                    "description": "The columns to select",
+                    "type": "array",
+                    "items": {
+                        "type": ["string", "object"]
+                    },
+                    "minItems": 1
+                }
+            },
+            "required": ["columns"]
+        }
+    },
+    "required": ["flavor", "select", "from"]
+}

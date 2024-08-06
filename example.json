@@ -1,0 +1,114 @@
+{
+    "flavor": "postgresql",
+    "schema": "public",
+    "select": {
+        "distinct": false,
+        "columns": [
+            "dh.id",
+            { "source": "data_headers", "name": "in_date", "alias": "Date" },
+            { "source": "data_details", "name": "*" },
+            { "source": "s", "name": "name", "alias": "Season" },
+            { "source": "p", "name": "name", "alias": "Parcel" },
+            { "source": "w", "name": "name", "alias": "Worker" },
+            {
+                "expr": {
+                    "operator": "||",
+                    "terms": ["s.name", "', '", "p.name"]
+                },
+                "alias": "SeasonParcel"
+            },
+            {
+                "expr": {
+                    "terms": ["s.id", "+", "p.id", "-", "s.id"]
+                },
+                "alias": "SeasonParcelId"
+            },
+            {
+                "group": "COUNT",
+                "distinct": true,
+                "source": "dd",
+                "name": "sample_number",
+                "alias": "Samples"
+            },
+            {
+                "group": "SUM",
+                "expr": {
+                    "operator": "*",
+                    "terms": ["dd.sample_number", "dd.sample_weight"]
+                },
+                "alias": "TotalWeight"
+            }
+        ]
+    },
+    "from": "data_headers",
+    "alias": "dh",
+    "join": [
+        {
+            "schema": "public",
+            "with": "data_details",
+            "alias": "dd",
+            "local": "header_id",
+            "foreign": "id",
+            "type": "INNER"
+        },
+        {
+            "with": "seasons",
+            "alias": "s",
+            "local": "season_id",
+            "foreign": "id",
+            "type": "INNER"
+        },
+        {
+            "with": "parcels",
+            "alias": "p",
+            "local": "parcel_id",
+            "foreign": "id",
+            "type": "INNER"
+        },
+        {
+            "with": "workers",
+            "alias": "w",
+            "local": "worker_id",
+            "foreign": "id",
+            "type": "INNER"
+        }
+    ],
+    "where": [
+        {
+            "source": "data_headers",
+            "name": "in_date",
+            "operator": "between",
+            "value": ["2024-01-01", "2024-12-31"],
+            "connector": "AND"
+        },
+        {
+            "source": "data_headers",
+            "name": "id",
+            "operator": "eq",
+            "value": 1
+        }
+    ],
+    "order": [
+        {
+            "source": "dd",
+            "name": "sample_number",
+            "direction": "DESC"
+        },
+        {
+            "source": "data_headers",
+            "name": "id",
+            "direction": "ASC"
+        },
+        {
+            "source": "data_headers",
+            "name": "in_date"
+        }
+    ],
+    "having": [
+        {
+            "source": "dd",
+            "name": "sample_number",
+            "gt": 10
+        }
+    ]
+}
